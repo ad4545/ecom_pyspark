@@ -1,0 +1,6 @@
+bundle-*
+aws-*
+hadoop-*
+snowflake-*
+spark-*
+Dockerfile
