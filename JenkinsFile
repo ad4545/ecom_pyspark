@@ -5,6 +5,7 @@ pipeline {
         stage("Checkout"){
             steps{
                 sh 'ls -la'
+                sh 'java -version'
                 echo "Listed....."
             }
         }
