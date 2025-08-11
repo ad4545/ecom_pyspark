@@ -1,11 +1,34 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col,to_date
+import os
 import logging
+
+
+LOG_FILE = "/data/log.txt"
+
+# Ensure /data exists (should already be created by your Dockerfile)
+os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    filemode="a",                # append to existing log
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("PySparkSalesJob")
+
 
 # 1. Initialize SparkSession: This is the entry point for all Spark functionality.
 spark = SparkSession.builder \
     .appName("PySparkSalesJob") \
     .getOrCreate()
+
+
+logger.info("=== Sales Job Starting ===")
+
+
+logger.info("Reading raw datasets from S3")
 
 df_orders = spark.read.csv("s3a://spark-app-storage-raw/raw_ecom_data/olist_orders_dataset.csv",header=True,inferSchema=True)
 df_products = spark.read.csv("s3a://spark-app-storage-raw/raw_ecom_data/olist_products_dataset.csv",header=True,inferSchema=True)
