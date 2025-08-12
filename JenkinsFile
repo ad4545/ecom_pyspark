@@ -9,5 +9,14 @@ pipeline {
                 echo "Listed....."
             }
         }
+        stage('Test') {
+            steps {
+                script {
+                docker.build('adarsh7r/ecom-pytest:latest').inside {
+                    sh 'pytest -v'
+                }
+                }
+            }
+        }
     }
 }

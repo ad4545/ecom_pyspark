@@ -2,7 +2,7 @@ import pytest
 from pyspark.sql import SparkSession
 from sales_job import (
     join_orders_and_items,
-    # join_with_payments,
+    # add_product_category,
     # join_with_customers,
     # join_with_geolocation,
     # join_with_sellers
@@ -32,71 +32,65 @@ def test_join_orders_and_items(spark):
     assert "order_status" not in result.columns
     assert result.filter(result.order_id == "o1").count() == 1
 
+def test_add_product_category(spark):
+    sales = [
+        ("o1", "p1"),
+    ]
+    sales_schema = ["order_id", "product_id"]
+    df_sales = spark.createDataFrame(sales, sales_schema)
 
-# def test_join_with_payments(spark):
-#     orders_items = [
-#         ("o1", "2023-01-03", "cust1", "p1")
-#     ]
-#     orders_items_schema = ["order_id", "order_date", "customer_id", "product_id"]
-#     df_orders_items = spark.createDataFrame(orders_items, orders_items_schema)
+    products = [
+        ("p1", "cat1", 2, 10, 20, 30, 40, 50, 60),  # Added dummy value for product_width_cm
+    ]
+    products_schema = [
+        "product_id", "product_category_name", "product_photos_qty",
+        "product_name_lenght", "product_description_lenght", "product_weight_g",
+        "product_length_cm", "product_height_cm", "product_width_cm"
+    ]
+    df_products = spark.createDataFrame(products, products_schema)
 
-#     payments = [
-#         ("o1", 1, "credit_card", 100.0)
-#     ]
-#     payments_schema = ["order_id", "payment_sequential", "payment_type", "payment_value"]
-#     df_payments = spark.createDataFrame(payments, payments_schema)
+    from sales_job import add_product_category
+    result = add_product_category(df_sales, df_products)
+    assert "product_category" in result.columns
+    assert "product_id" not in result.columns
+    assert "unit_sold" in result.columns
 
-#     result = join_with_payments(df_orders_items, df_payments)
-#     assert "payment_sequential" not in result.columns
-#     assert result.filter(result.payment_type == "credit_card").count() == 1
+def test_format_date_and_clean(spark):
+    sales = [
+        ("o1", "2023-01-01 12:00:00", "2023-01-02", "2023-01-03"),
+    ]
+    sales_schema = ["order_id", "order_purchase_timestamp", "order_delivered_customer_date", "order_estimated_delivery_date"]
+    df_sales = spark.createDataFrame(sales, sales_schema)
+
+    from sales_job import format_date_and_clean
+    result = format_date_and_clean(df_sales)
+    assert "date" in result.columns
+    assert "order_purchase_timestamp" not in result.columns
+
+def test_add_revenue_and_customer_data(spark):
+    sales = [
+        ("o1", "cust1", 100.0),
+    ]
+    sales_schema = ["sales_id", "customer_id", "price"]
+    df_sales = spark.createDataFrame(sales, sales_schema)
+
+    payments = [
+        ("o1", 1, "credit_card", 1, 100.0),
+    ]
+    payments_schema = ["order_id", "payment_sequential", "payment_type", "payment_installments", "payment_value"]
+    df_payments = spark.createDataFrame(payments, payments_schema)
+
+    customers = [
+        ("cust1", "unique1", "zip1", "city1", "state1"),
+    ]
+    customers_schema = ["customer_id", "customer_unique_id", "customer_zip_code_prefix", "customer_city", "customer_state"]
+    df_customers = spark.createDataFrame(customers, customers_schema)
+
+    from sales_job import add_revenue_and_customer_data
+    result = add_revenue_and_customer_data(df_sales, df_payments, df_customers)
+    assert "revenue" in result.columns
+    assert "city" in result.columns
+    assert "state" in result.columns
+    assert "customer_unique_id" not in result.columns
 
 
-# def test_join_with_customers(spark):
-#     orders_payments = [
-#         ("o1", "2023-01-03", "cust1", "p1", "credit_card", 100.0)
-#     ]
-#     schema_orders_payments = ["order_id", "order_date", "customer_id", "product_id", "payment_type", "payment_value"]
-#     df_orders_payments = spark.createDataFrame(orders_payments, schema_orders_payments)
-
-#     customers = [
-#         ("cust1", "SP", "city1")
-#     ]
-#     schema_customers = ["customer_id", "customer_state", "customer_city"]
-#     df_customers = spark.createDataFrame(customers, schema_customers)
-
-#     result = join_with_customers(df_orders_payments, df_customers)
-#     assert result.filter(result.customer_state == "SP").count() == 1
-
-
-# def test_join_with_geolocation(spark):
-#     customers_data = [
-#         ("o1", "2023-01-03", "cust1", "p1", "credit_card", 100.0, "SP", "city1")
-#     ]
-#     schema_customers_data = ["order_id", "order_date", "customer_id", "product_id", "payment_type", "payment_value", "customer_state", "customer_city"]
-#     df_customers_data = spark.createDataFrame(customers_data, schema_customers_data)
-
-#     geolocation = [
-#         ("SP", "city1", -23.55, -46.63)
-#     ]
-#     schema_geo = ["geolocation_state", "geolocation_city", "latitude", "longitude"]
-#     df_geo = spark.createDataFrame(geolocation, schema_geo)
-
-#     result = join_with_geolocation(df_customers_data, df_geo)
-#     assert result.filter(result.latitude == -23.55).count() == 1
-
-
-# def test_join_with_sellers(spark):
-#     geo_data = [
-#         ("o1", "2023-01-03", "cust1", "p1", "credit_card", 100.0, "SP", "city1", -23.55, -46.63)
-#     ]
-#     schema_geo_data = ["order_id", "order_date", "customer_id", "product_id", "payment_type", "payment_value", "customer_state", "customer_city", "latitude", "longitude"]
-#     df_geo_data = spark.createDataFrame(geo_data, schema_geo_data)
-
-#     sellers = [
-#         ("s1", "SP", "city1")
-#     ]
-#     schema_sellers = ["seller_id", "seller_state", "seller_city"]
-#     df_sellers = spark.createDataFrame(sellers, schema_sellers)
-
-#     result = join_with_sellers(df_geo_data, df_sellers)
-#     assert "seller_id" in result.columns
