@@ -1,14 +1,15 @@
 pipeline {
-    agent {
-        docker {
-            image 'adarsh7r/ecom-pytest:latest'
-        }
-    }
+    agent any
     stages {
-        stage("PyTest"){
-            steps{
-                sh 'pytest -v'
+        stage('Test') {
+            steps {
+                script {
+                    docker.build('adarsh7r/ecom-pytest:latest').inside {
+                        sh 'pytest -v'
+                    }
+                }
             }
         }
+
     }
 }
