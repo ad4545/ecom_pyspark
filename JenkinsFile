@@ -2,7 +2,6 @@ pipeline {
     agent {
             docker {
                 image 'adarsh7r/ecom-pytest:latest'
-                label 'docker-agent' // Optional, if you defined labels
         }
     }
     stages { 
