@@ -1,8 +1,7 @@
 pipeline {
     agent {
-    docker {
-      image 'adarsh7r/ecom-pytest:latest'
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+        docker {
+            image 'adarsh7r/ecom-pytest:latest'
         }
     }
     stages {
