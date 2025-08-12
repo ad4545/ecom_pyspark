@@ -1,21 +1,16 @@
 pipeline {
-    agent any
-
+    agent {
+    docker {
+      image 'adarsh7r/ecom-pytest:latest'
+      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+        }
+    }
     stages {
-        stage("Checkout"){
+        stage("PyTest"){
             steps{
                 sh 'ls -la'
                 sh 'java -version'
                 echo "Listed....."
-            }
-        }
-        stage('Test') {
-            steps {
-                script {
-                docker.build('adarsh7r/ecom-pytest:latest').inside {
-                    sh 'pytest -v'
-                }
-                }
             }
         }
     }
