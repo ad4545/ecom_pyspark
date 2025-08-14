@@ -1,5 +1,4 @@
 import pytest
-import os
 from pyspark.sql import SparkSession
 from delivery_job import (
     join_orders_items,
@@ -9,17 +8,9 @@ from delivery_job import (
     finalize_delivery_table
 )
 
-os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
-
 @pytest.fixture(scope="session")
 def spark():
-    spark = (
-        SparkSession.builder
-        .master("local[2]")
-        .appName("pytest-pyspark-DELIVERY")
-        .config("spark.executor.processTreeMetrics.enabled", "false")
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-delivery").getOrCreate()
     yield spark
     spark.stop()
 

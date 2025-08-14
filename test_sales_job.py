@@ -1,5 +1,4 @@
 import pytest
-import os
 from pyspark.sql import SparkSession
 from sales_job import (
     join_orders_and_items,
@@ -9,17 +8,9 @@ from sales_job import (
     # join_with_sellers
 )
 
-os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
-
 @pytest.fixture(scope="session")
 def spark():
-    spark = (
-        SparkSession.builder
-        .master("local[2]")
-        .appName("pytest-pyspark-sales")
-        .config("spark.executor.processTreeMetrics.enabled", "false")
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-sales").getOrCreate()
     yield spark
     spark.stop()
 

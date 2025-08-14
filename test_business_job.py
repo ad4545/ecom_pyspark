@@ -1,5 +1,4 @@
 import pytest
-import os
 from pyspark.sql import SparkSession
 from business_job import (
     get_statewise_total,
@@ -7,17 +6,9 @@ from business_job import (
     get_categorywise_review_score
 )
 
-os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
-
 @pytest.fixture(scope="session")
 def spark():
-    spark = (
-        SparkSession.builder
-        .master("local[2]")
-        .appName("pytest-pyspark-business")
-        .config("spark.executor.processTreeMetrics.enabled", "false")
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-business").getOrCreate()
     yield spark
     spark.stop()
 
