@@ -8,6 +8,7 @@ from delivery_job import (
     finalize_delivery_table
 )
 
+@pytest.fixture(scope="session")
 def spark():
     spark = (
         SparkSession.builder

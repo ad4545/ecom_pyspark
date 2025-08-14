@@ -6,6 +6,7 @@ from business_job import (
     get_categorywise_review_score
 )
 
+@pytest.fixture(scope="session")
 def spark():
     spark = (
         SparkSession.builder

@@ -8,6 +8,7 @@ from sales_job import (
     # join_with_sellers
 )
 
+@pytest.fixture(scope="session")
 def spark():
     spark = (
         SparkSession.builder
