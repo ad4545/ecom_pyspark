@@ -6,9 +6,14 @@ from business_job import (
     get_categorywise_review_score
 )
 
-@pytest.fixture(scope="session")
 def spark():
-    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-business").getOrCreate()
+    spark = (
+        SparkSession.builder
+        .master("local[2]")
+        .appName("pytest-pyspark-business")
+        .config("spark.executor.processTreeMetrics.enabled", "false")
+        .getOrCreate()
+    )
     yield spark
     spark.stop()
 

@@ -8,9 +8,14 @@ from delivery_job import (
     finalize_delivery_table
 )
 
-@pytest.fixture(scope="session")
 def spark():
-    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-delivery").getOrCreate()
+    spark = (
+        SparkSession.builder
+        .master("local[2]")
+        .appName("pytest-pyspark-DELIVERY")
+        .config("spark.executor.processTreeMetrics.enabled", "false")
+        .getOrCreate()
+    )
     yield spark
     spark.stop()
 

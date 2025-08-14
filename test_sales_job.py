@@ -8,9 +8,14 @@ from sales_job import (
     # join_with_sellers
 )
 
-@pytest.fixture(scope="session")
 def spark():
-    spark = SparkSession.builder.master("local[2]").appName("pytest-pyspark-sales").getOrCreate()
+    spark = (
+        SparkSession.builder
+        .master("local[2]")
+        .appName("pytest-pyspark-sales")
+        .config("spark.executor.processTreeMetrics.enabled", "false")
+        .getOrCreate()
+    )
     yield spark
     spark.stop()
 
