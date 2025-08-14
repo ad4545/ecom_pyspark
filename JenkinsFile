@@ -1,35 +1,26 @@
 pipeline {
-  agent {
-    kubernetes {
-      namespace 'devops-tools'
-      defaultContainer 'ci'
-      yaml """
+    agent {
+        kubernetes {
+            yaml """
 apiVersion: v1
 kind: Pod
 spec:
-  serviceAccountName: jenkins-admin
   containers:
-  - name: ci
+  - name: node
     image: adarsh7r/ecom-pytest:latest
     command:
     - cat
     tty: true
-    volumeMounts:
-    - name: workspace
-      mountPath: /home/jenkins/agent
-  volumes:
-  - name: workspace
-    emptyDir: {}
 """
-    }
-  }
-  stages {
-    stage('Run in CI container') {
-      steps {
-        container('ci') {
-          sh 'ls -la'
         }
-      }
     }
-  }
+    stages {
+        stage('Test') {
+            steps {
+                container('node') {
+                    sh 'pytest -v'
+                }
+            }
+        }
+    }
 }
