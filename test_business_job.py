@@ -1,10 +1,13 @@
 import pytest
+import os
 from pyspark.sql import SparkSession
 from business_job import (
     get_statewise_total,
     get_statewise_payments,
     get_categorywise_review_score
 )
+
+os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
 
 @pytest.fixture(scope="session")
 def spark():

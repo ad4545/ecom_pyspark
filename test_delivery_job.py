@@ -1,4 +1,5 @@
 import pytest
+import os
 from pyspark.sql import SparkSession
 from delivery_job import (
     join_orders_items,
@@ -7,6 +8,8 @@ from delivery_job import (
     add_delivery_metrics,
     finalize_delivery_table
 )
+
+os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
 
 @pytest.fixture(scope="session")
 def spark():

@@ -1,4 +1,5 @@
 import pytest
+import os
 from pyspark.sql import SparkSession
 from sales_job import (
     join_orders_and_items,
@@ -7,6 +8,8 @@ from sales_job import (
     # join_with_geolocation,
     # join_with_sellers
 )
+
+os.environ["JAVA_TOOL_OPTIONS"] = "-XX:+IgnoreContainerSupport"
 
 @pytest.fixture(scope="session")
 def spark():
