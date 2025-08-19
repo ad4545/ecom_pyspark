@@ -15,10 +15,17 @@ spec:
         }
     }
     stages {
-        stage('Test') {
+        stage('Pyspark Test') {
             steps {
                 container('node') {
                     sh 'pytest'
+                }
+            }
+        }
+        stage('Build and Push Image') {
+            steps {
+                container('node') {
+                    sh 'docker -v'
                 }
             }
         }
