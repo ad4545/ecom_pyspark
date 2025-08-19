@@ -11,26 +11,18 @@ spec:
     command:
     - cat
     tty: true
-    env:
-    - name: DOCKER_HOST
-      value: tcp://localhost:2376
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-  - name: dind
-    image: arm64v8/docker:28
-    securityContext:
-      privileged: true
-    env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-    - name: DOCKER_DRIVER
-      value: overlay2
+  - name: docker
+    image: docker:27-cli
+    command:
+    - cat
+    tty: true
     volumeMounts:
     - name: docker-sock
-      mountPath: /var/run
+      mountPath: /var/run/docker.sock
   volumes:
   - name: docker-sock
-    emptyDir: {}
+    hostPath:
+      path: /var/run/docker.sock
 """
         }
     }
@@ -44,15 +36,9 @@ spec:
         }
         stage('Build and Push Image') {
             steps {
-                container('node') {
+                container('docker') {
                     sh '''
-                        # Wait for Docker daemon to be ready
-                        while ! docker version >/dev/null 2>&1; do
-                            echo "Waiting for Docker daemon..."
-                            sleep 2
-                        done
                         docker version
-                        # Your docker build/push commands here
                     '''
                 }
             }
