@@ -55,14 +55,7 @@ spec:
                         apt-get install -y docker-ce-cli
                         
                         docker --version
-                    '''
-                }
-            }
-        }
-        stage('Build and Push') {
-            steps {
-                container('node') {
-                    sh '''
+
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/aws-java-sdk-bundle-1.11.271.jar
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.0.0-preview-7.jar
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.32.7.jar
@@ -71,8 +64,7 @@ spec:
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/spark-snowflake_2.13-3.1.1.jar
 
                         docker build -t $DOCKER_IMAGE .
-
-                       '''
+                    '''
                 }
             }
         }
