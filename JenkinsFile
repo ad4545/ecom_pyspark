@@ -32,7 +32,7 @@ spec:
     - name: docker-sock
       mountPath: /var/run
   - name: docker-client
-    image: docker:24-cli
+    image: docker:28.3-cli
     command:
     - cat
     tty: true
