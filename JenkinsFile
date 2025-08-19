@@ -11,26 +11,47 @@ spec:
     command:
     - cat
     tty: true
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
+    securityContext:
+      runAsUser: 0
+  - name: docker
+    image: docker:24-dind
+    securityContext:
+      privileged: true
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_DRIVER
+      value: overlay2
+    command:
+    - dockerd
+    - --host=unix:///var/run/docker.sock
+    - --host=tcp://0.0.0.0:2375
+    - --storage-driver=overlay2
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run
+  - name: docker-client
+    image: docker:24-cli
     command:
     - cat
     tty: true
+    env:
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
     volumeMounts:
-    - name: kaniko-secret
-      mountPath: /kaniko/.docker
+    - name: docker-sock
+      mountPath: /var/run
   volumes:
-  - name: kaniko-secret
-    secret:
-      secretName: docker-cred
+  - name: docker-sock
+    emptyDir: {}
 """
         }
     }
-
     environment {
         DOCKER_IMAGE = "adarsh7r/spark-app:${BUILD_NUMBER}"
+        REGISTRY_CREDENTIALS = credentials('docker-cred')
     }
-
     stages {
         stage('Pyspark Test') {
             steps {
@@ -39,31 +60,42 @@ spec:
                 }
             }
         }
-
-        stage('Build and Push with Kaniko') {
+        stage('Download Dependencies') {
             steps {
-                container('kaniko') {
+                container('node') {
                     sh '''
-                        set -eux
-                        whoami
-                        id
-
-                        # Download JARs into build context
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/aws-java-sdk-bundle-1.11.271.jar
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.0.0-preview-7.jar
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.32.7.jar
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/hadoop-aws-3.4.1.jar
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/snowflake-jdbc-3.13.21.jar
-                        curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/spark-snowflake_2.13-3.1.1.jar
-
-                        # Kaniko build & push
-                        /kaniko/executor \
-                          --context `pwd` \
-                          --dockerfile `pwd`/Dockerfile \
-                          --destination=$DOCKER_IMAGE \
-                          --cache=true \
-                          --cleanup
+                    set -eux
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/aws-java-sdk-bundle-1.11.271.jar
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.0.0-preview-7.jar
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.32.7.jar
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/hadoop-aws-3.4.1.jar
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/snowflake-jdbc-3.13.21.jar
+                    curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/spark-snowflake_2.13-3.1.1.jar
                     '''
+                }
+            }
+        }
+        stage('Build and Push') {
+            steps {
+                container('docker-client') {
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'docker-cred', 
+                                                        usernameVariable: 'DOCKER_USER', 
+                                                        passwordVariable: 'DOCKER_PASS')]) {
+                            sh '''
+                            set -eux
+                            
+                            # Wait for Docker daemon to be ready
+                            timeout 60 sh -c 'until docker info; do sleep 1; done'
+                            
+                            # Login to Docker registry
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            
+                            # Build and push the image
+                            docker build -t $DOCKER_IMAGE .
+                            '''
+                        }
+                    }
                 }
             }
         }
