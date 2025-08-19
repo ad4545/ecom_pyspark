@@ -1,56 +1,34 @@
 pipeline {
-  agent {
-    kubernetes {
-      yaml """
+    agent {
+        kubernetes {
+            yaml """
 apiVersion: v1
 kind: Pod
 spec:
-  securityContext:
-    runAsUser: 0
-  volumes:
-    - name: docker-sock
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
   containers:
-    - name: node
-      image: adarsh7r/ecom-pytest:latest
-      command: ['cat']
-      tty: true
-    - name: docker
-      image: docker:27-cli
-      command: ['cat']
-      tty: true
-      volumeMounts:
-        - name: docker-sock
-          mountPath: /var/run/docker.sock
+  - name: node
+    image: adarsh7r/ecom-pytest:latest
+    command:
+    - cat
+    tty: true
 """
-    }
-  }
-  stages {
-    stage('PySpark Test') {
-      steps {
-        container('node') {
-          sh 'pytest'
         }
-      }
     }
-    stage('Build and Push Image') {
-      steps {
-        // Run docker commands in the container that has the CLI + socket
-        container('docker') {
-          // Optional: make DOCKER_HOST explicit
-          withEnv(['DOCKER_HOST=unix:///var/run/docker.sock']) {
-            sh '''
-              docker version
-              # build and push (example)
-              docker build -t yourrepo/yourimage:${BUILD_NUMBER} .
-              docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
-              docker push yourrepo/yourimage:${BUILD_NUMBER}
-            '''
-          }
+    stages {
+        stage('Pyspark Test') {
+            steps {
+                container('node') {
+                    sh 'pytest'
+                }
+            }
         }
-      }
+        stage('Build Docker Image') {
+                steps {
+                    script {
+                        // Build a Docker image
+                        def customImage = docker.build("spark-app:2025", ".") 
+                    }
+                }
+            }
     }
-  }
 }
