@@ -11,15 +11,26 @@ spec:
     command:
     - cat
     tty: true
-    securityContext:
-      runAsUser: 0
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: kaniko-secret
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: kaniko-secret
+    secret:
+      secretName: docker-cred
 """
         }
     }
+
     environment {
         DOCKER_IMAGE = "adarsh7r/spark-app:${BUILD_NUMBER}"
-        REGISTRY_CREDENTIALS = credentials('docker-cred')
     }
+
     stages {
         stage('Pyspark Test') {
             steps {
@@ -28,34 +39,16 @@ spec:
                 }
             }
         }
-        stage('Install docker') {
+
+        stage('Build and Push with Kaniko') {
             steps {
-                container('node') {
+                container('kaniko') {
                     sh '''
                         set -eux
                         whoami
                         id
-                        
-                        # Update package index
-                        apt-get update
-                        
-                        # Install prerequisites
-                        apt-get install -y ca-certificates curl gnupg lsb-release
-                        
-                        # Add Docker's official GPG key
-                        install -m 0755 -d /etc/apt/keyrings
-                        curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                        chmod a+r /etc/apt/keyrings/docker.gpg
-                        
-                        # Add Docker repository
-                        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-                        
-                        # Install Docker CLI
-                        apt-get update
-                        apt-get install -y docker-ce-cli
-                        
-                        docker --version
 
+                        # Download JARs into build context
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/aws-java-sdk-bundle-1.11.271.jar
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.0.0-preview-7.jar
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/bundle-2.32.7.jar
@@ -63,11 +56,16 @@ spec:
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/snowflake-jdbc-3.13.21.jar
                         curl -O https://seven-robotics.s3.ap-south-1.amazonaws.com/spark-essentials/spark-snowflake_2.13-3.1.1.jar
 
-                        docker build -t $DOCKER_IMAGE .
+                        # Kaniko build & push
+                        /kaniko/executor \
+                          --context `pwd` \
+                          --dockerfile `pwd`/Dockerfile \
+                          --destination=$DOCKER_IMAGE \
+                          --cache=true \
+                          --cleanup
                     '''
                 }
             }
         }
-
     }
 }
