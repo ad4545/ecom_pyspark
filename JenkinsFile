@@ -17,7 +17,7 @@ spec:
     - name: DOCKER_TLS_CERTDIR
       value: ""
   - name: docker
-    image: docker:27-cli
+    image: docker:28-cli
     command:
     - cat
     tty: true
