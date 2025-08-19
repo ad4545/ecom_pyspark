@@ -44,7 +44,6 @@ spec:
                 container('docker') {
                     sh '''
                         docker version
-                        # Your docker build/push commands here
                     '''
                 }
             }
