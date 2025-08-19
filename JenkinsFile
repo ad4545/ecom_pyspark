@@ -11,6 +11,23 @@ spec:
     command:
     - cat
     tty: true
+    env:
+    - name: DOCKER_HOST
+      value: tcp://localhost:2376
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+  - name: docker
+    image: docker:24-cli
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
 """
         }
     }
@@ -22,13 +39,15 @@ spec:
                 }
             }
         }
-        stage('Build Docker Image') {
-                steps {
-                    script {
-                        // Build a Docker image
-                        def customImage = docker.build("spark-app:2025", ".") 
-                    }
+        stage('Build and Push Image') {
+            steps {
+                container('docker') {
+                    sh '''
+                        docker version
+                        # Your docker build/push commands here
+                    '''
                 }
             }
+        }
     }
 }
