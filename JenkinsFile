@@ -25,19 +25,25 @@ spec:
   }
 
   stages {
-    stage('Checkout') {
-      steps {
-        // Jenkins will fetch your Git repo into $WORKSPACE
-        checkout scm
-      }
-    }
-
     stage('PySpark Test') {
       steps {
         container('node') {
           sh 'pytest'
         }
       }
+    }
+
+    stage('Prepare Jars') {
+            steps {
+                container('node') {
+                    // Copy all .jar files from /home/jenkins/agent/ into workspace
+                    sh '''
+                        echo "Copying JAR files to workspace..."
+                        cp /home/jenkins/agent/*.jar $WORKSPACE/ || echo "No jars found"
+                        ls -lh $WORKSPACE/
+                    '''
+                }
+            }
     }
 
     stage('Docker Build') {
