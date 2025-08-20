@@ -16,7 +16,7 @@ spec:
         mountPath: /home/jenkins/agent/artifacts
 
   - name: docker
-    image: docker:27-cli    # docker CLI only
+    image: docker:27-cli
     command:
       - cat
     tty: true
@@ -62,6 +62,7 @@ spec:
         }
       }
     }
+
     stage('Docker Build') {
       steps {
         container('docker') {
@@ -75,6 +76,29 @@ spec:
             echo "Image built - list images"
             docker images | head -n 20
           '''
+        }
+      }
+    }
+
+    stage('Docker Push') {
+      steps {
+        container('docker') {
+          withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh '''
+              echo "Logging in to Docker Hub..."
+              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+              IMAGE_NAME="${DOCKER_USER}/spark-app:${BUILD_NUMBER}"
+
+              echo "Tagging image as $IMAGE_NAME"
+              docker tag spark-app:${BUILD_NUMBER} $IMAGE_NAME
+
+              echo "Pushing image to Docker Hub..."
+              docker push $IMAGE_NAME
+
+              echo "Successfully pushed $IMAGE_NAME"
+            '''
+          }
         }
       }
     }
