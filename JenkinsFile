@@ -29,7 +29,11 @@ spec:
       steps {
         container('node') {
           // run tests in the workspace (same workspace visible to other container)
-          sh 'pytest'
+          sh '''
+              pytest
+              ls -la
+             '''
+          
         }
       }
     }
