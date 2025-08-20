@@ -14,10 +14,10 @@ RUN apt-get update && \
 RUN pip3 install pyspark
 
 # Add Hadoop AWS and Snowflake connector jars
-COPY hadoop-aws-3.4.1.jar /opt/spark/jars/
-COPY bundle-2.32.7.jar /opt/spark/jars/
-COPY snowflake-jdbc-3.13.21.jar /opt/spark/jars/
-COPY spark-snowflake_2.13-3.1.1.jar /opt/spark/jars/
+COPY artifacts/hadoop-aws-3.4.1.jar /opt/spark/jars/
+COPY artifacts/bundle-2.32.7.jar /opt/spark/jars/
+COPY artifacts/snowflake-jdbc-3.13.21.jar /opt/spark/jars/
+COPY artifacts/spark-snowflake_2.13-3.1.1.jar /opt/spark/jars/
 
 # Fix jar permissions for Spark user
 RUN chown 185:185 /opt/spark/jars/*.jar \
