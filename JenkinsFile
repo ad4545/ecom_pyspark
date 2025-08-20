@@ -1,7 +1,7 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
+  agent {
+    kubernetes {
+      yaml """
 apiVersion: v1
 kind: Pod
 spec:
@@ -9,18 +9,40 @@ spec:
   - name: node
     image: adarsh7r/ecom-pytest:latest
     command:
-    - cat
+      - cat
     tty: true
+
+  - name: docker
+    image: docker:27-cli    # docker CLI only
+    command:
+      - cat
+    tty: true
+    env:
+      - name: DOCKER_HOST
+        value: "tcp://host.docker.internal:2375"
 """
-        }
     }
-    stages {
-        stage('Pyspark Test') {
-            steps {
-                container('node') {
-                    sh 'pytest'
-                }
-            }
+  }
+
+  stages {
+    stage('Pyspark Test') {
+      steps {
+        container('node') {
+          // run tests in the workspace (same workspace visible to other container)
+          sh 'pytest'
         }
+      }
     }
+
+    stage('Build Docker image') {
+      steps {
+        container('docker') {
+          sh '''
+            echo "Docker client version:"
+            docker version
+          '''
+        }
+      }
+    }
+  }
 }
