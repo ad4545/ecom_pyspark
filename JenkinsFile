@@ -33,25 +33,21 @@ spec:
       }
     }
 
-    stage('Prepare Jars') {
-            steps {
-                container('node') {
-                    // Copy all .jar files from /home/jenkins/agent/ into workspace
-                    sh '''
-                        echo "Copying JAR files to workspace..."
-                        cp /home/jenkins/agent/*.jar $WORKSPACE/ || echo "No jars found"
-                        ls -lh $WORKSPACE/
-                    '''
-                }
-            }
-    }
-
-    stage('Docker Build') {
+    stage('Prepare JARs (fast, from PVC)') {
       steps {
-        container('docker') {
+        container('node') {
           sh '''
-            echo "Building Docker image from workspace..."
-            ls -lh  
+            echo "Listing mounted artifacts (PVC):"
+            ls -lh /home/jenkins/agent/artifacts || true
+
+            echo "Ensure workspace artifacts dir exists"
+            mkdir -p "$WORKSPACE/artifacts"
+
+            echo "Copy JARs from PVC mount into workspace (fast local copy)"
+            cp -a /home/jenkins/agent/artifacts/. "$WORKSPACE/artifacts/" || true
+
+            echo "Verify workspace artifacts:"
+            ls -lh "$WORKSPACE/artifacts"
           '''
         }
       }
