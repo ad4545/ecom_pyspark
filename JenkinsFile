@@ -11,6 +11,9 @@ spec:
     command:
       - cat
     tty: true
+    volumeMounts:
+      - name: jar-vol
+        mountPath: /home/jenkins/agent/artifacts
 
   - name: docker
     image: docker:27-cli    # docker CLI only
@@ -20,6 +23,13 @@ spec:
     env:
       - name: DOCKER_HOST
         value: "tcp://host.docker.internal:2375"
+    volumeMounts:
+      - name: jar-vol
+        mountPath: /home/jenkins/agent/artifacts
+  volumes:
+    - name: jar-vol
+      persistentVolumeClaim:
+        claimName: jar-pvc        
 """
     }
   }
