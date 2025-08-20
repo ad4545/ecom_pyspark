@@ -62,5 +62,21 @@ spec:
         }
       }
     }
+    stage('Docker Build') {
+      steps {
+        container('docker') {
+          sh '''
+            echo "Docker client version:"
+            docker version || true
+
+            echo "Building image (build context contains artifacts/):"
+            docker build -t spark-app:${BUILD_NUMBER} .
+
+            echo "Image built - list images"
+            docker images | head -n 20
+          '''
+        }
+      }
+    }
   }
 }
