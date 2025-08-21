@@ -71,36 +71,33 @@ spec:
             docker version || true
 
             echo "Building image (build context contains artifacts/):"
-            docker build -t spark-app:${BUILD_NUMBER} .
-
-            echo "Image built - list images"
-            docker images | head -n 20
+            docker build -t spark-app:latest .
           '''
         }
       }
     }
 
-    stage('Docker Push') {
-      steps {
-        container('docker') {
-          withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-            sh '''
-              echo "Logging in to Docker Hub..."
-              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+    // stage('Docker Push') {
+    //   steps {
+    //     container('docker') {
+    //       withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+    //         sh '''
+    //           echo "Logging in to Docker Hub..."
+    //           echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-              IMAGE_NAME="${DOCKER_USER}/spark-app:latest"
+    //           IMAGE_NAME="${DOCKER_USER}/spark-app:latest"
 
-              echo "Tagging image as $IMAGE_NAME"
-              docker tag spark-app:latest $IMAGE_NAME
+    //           echo "Tagging image as $IMAGE_NAME"
+    //           docker tag spark-app:latest $IMAGE_NAME
 
-              echo "Pushing image to Docker Hub..."
-              docker push $IMAGE_NAME
+    //           echo "Pushing image to Docker Hub..."
+    //           docker push $IMAGE_NAME
 
-              echo "Successfully pushed $IMAGE_NAME"
-            '''
-          }
-        }
-      }
-    }
+    //           echo "Successfully pushed $IMAGE_NAME"
+    //         '''
+    //       }
+    //     }
+    //   }
+    // }
   }
 }
