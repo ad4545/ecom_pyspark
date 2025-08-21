@@ -71,7 +71,7 @@ spec:
             docker version || true
 
             echo "Building image (build context contains artifacts/):"
-            docker build -t spark-app:latest .
+            docker build -t spark-app:2025 .
           '''
         }
       }
