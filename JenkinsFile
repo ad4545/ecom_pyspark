@@ -88,10 +88,10 @@ spec:
               echo "Logging in to Docker Hub..."
               echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-              IMAGE_NAME="${DOCKER_USER}/spark-app:${BUILD_NUMBER}"
+              IMAGE_NAME="${DOCKER_USER}/spark-app:latest"
 
               echo "Tagging image as $IMAGE_NAME"
-              docker tag spark-app:${BUILD_NUMBER} $IMAGE_NAME
+              docker tag spark-app:latest $IMAGE_NAME
 
               echo "Pushing image to Docker Hub..."
               docker push $IMAGE_NAME
