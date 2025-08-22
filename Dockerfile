@@ -27,10 +27,9 @@ RUN chown 185:185 /opt/spark/jars/*.jar \
 RUN mkdir -p /opt/spark/app/artifacts \
     && chmod 1777 /opt/spark/app/artifacts
 
-# Create /data directory for log output and grant write access to Spark user
+# Create /data directory for log output and grant write access to all users
 RUN mkdir -p /data \
-    && chown 185:185 /data \
-    && chmod 755 /data
+    && chmod 777 /data
 
 # Copy Spark applications
 COPY sales_job.py /opt/spark/app/sales_job.py
