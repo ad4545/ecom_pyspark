@@ -4,7 +4,7 @@ from pyspark.sql.window import Window
 import os
 import logging
 
-LOG_FILE = "/data/business_log.txt"
+LOG_FILE = "/business_log/business_log.txt"
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 logging.basicConfig(
   filename=LOG_FILE,

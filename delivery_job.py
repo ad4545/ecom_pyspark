@@ -4,7 +4,7 @@ from pyspark.sql.functions import col, to_date, datediff
 import os
 import logging
 
-LOG_FILE = "/data/delivery_log.txt"
+LOG_FILE = "/delivery_log/delivery_log.txt"
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 logging.basicConfig(
   filename=LOG_FILE,
