@@ -18,8 +18,9 @@ RUN chown 185:185 /opt/spark/jars/*.jar && chmod 644 /opt/spark/jars/*.jar
 RUN mkdir -p /opt/spark/app && chown -R 185:185 /opt/spark/app
 
 # Create /data for logs, owned by Spark user (not 777 world-writable)
-RUN mkdir -p /data && chown 185:185 /data && chmod 775 /data
-
+RUN mkdir -p /sales_log && chown 185:185 /sales_log && chmod 775 /sales_log
+RUN mkdir -p /delivery_log && chown 185:185 /delivery_log && chmod 775 /delivery_log
+RUN mkdir -p /business_log && chown 185:185 /business_log && chmod 775 /business_log
 # Copy Spark applications
 COPY sales_job.py /opt/spark/app/
 COPY delivery_job.py /opt/spark/app/
