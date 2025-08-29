@@ -20,16 +20,19 @@ spec:
     command:
       - cat
     tty: true
-    env:
-      - name: DOCKER_HOST
-        value: "tcp://host.docker.internal:2375"
     volumeMounts:
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
       - name: jar-vol
         mountPath: /home/jenkins/agent/artifacts
   volumes:
     - name: jar-vol
       persistentVolumeClaim:
-        claimName: jar-pvc        
+        claimName: jar-pvc
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
 """
     }
   }
@@ -72,32 +75,12 @@ spec:
 
             echo "Building image (build context contains artifacts/):"
             docker build -t spark-app:2025 .
+            
+            echo "Verify image exists locally:"
+            docker images | grep spark-app || true
           '''
         }
       }
     }
-
-    // stage('Docker Push') {
-    //   steps {
-    //     container('docker') {
-    //       withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-    //         sh '''
-    //           echo "Logging in to Docker Hub..."
-    //           echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
-    //           IMAGE_NAME="${DOCKER_USER}/spark-app:latest"
-
-    //           echo "Tagging image as $IMAGE_NAME"
-    //           docker tag spark-app:latest $IMAGE_NAME
-
-    //           echo "Pushing image to Docker Hub..."
-    //           docker push $IMAGE_NAME
-
-    //           echo "Successfully pushed $IMAGE_NAME"
-    //         '''
-    //       }
-    //     }
-    //   }
-    // }
   }
 }

@@ -2,6 +2,10 @@ FROM apache/spark:4.0.0
 
 USER root
 
+# ENV JMX_EXPORTER_AGENT_VERSION=1.1.0
+# ADD https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_AGENT_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_AGENT_VERSION}.jar /opt/spark/jars
+# RUN chmod 644 /opt/spark/jars/jmx_prometheus_javaagent-${JMX_EXPORTER_AGENT_VERSION}.jar
+
 # Install Python3 and pip (if not already present)
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
